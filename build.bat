@@ -1,7 +1,7 @@
 @echo off
 
 echo ---------------------------Assembling-----------------------------
-C:\Users\ukasz\Desktop\ZXGame\pasmo --bin -v C:\Users\ukasz\Desktop\ZXGame\code_assembly.asm C:\Users\ukasz\Desktop\ZXGame\code_binary.bin  
+C:\Users\ukasz\Desktop\ZXGame\pasmo --bin -v C:\Users\ukasz\Desktop\ZXGame\code.asm C:\Users\ukasz\Desktop\ZXGame\code_binary.bin  
 if errorlevel 1 (
    echo ----------------------ASSEMBLING-FAILED------------------------
    PAUSE
