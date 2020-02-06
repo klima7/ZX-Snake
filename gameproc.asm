@@ -55,6 +55,7 @@ GOTOXY:	ld a, 22		; Wysłanie sekwencji ucieczki oznaczającej zmiane pozycji
 ; PROCEDURA WYŚWIETLAJĄCA WĘŻA
 DISPSNAKE:	call DISPHEAD
 	call DISPBODY
+	call DISPTAIL
 	ret
 
 	
@@ -84,6 +85,46 @@ _disphead:	ld (23675), hl
 	ld c, (hl)
 	call GOTOXY
 	ld a, 144		; Wyświetlenie grafiki głowy
+	rst 16
+	ret
+	
+; PROCEDURA WYŚWIETLAJĄCA OGON WĘŻA
+DISPTAIL:
+	ld hl, snakelen	; Odnalezienie fragmentu odpowiadającego za ogon
+	ld d, 0
+	ld e, (hl)
+	dec de
+	ld hl, snake
+	adc hl, de
+	adc hl, de
+	
+	dec hl		; Sprawdzenie czy róźni się od poprzedniego fragmentu na x czy y
+	dec hl
+	ld a, (hl)
+	inc hl
+	inc hl
+	cp (hl)
+	jr nz, _tailxdiff
+	jp _tailydiff
+
+	
+_tailxdiff:	jr nc, _tailxgreat	; Fragmenty różnią się na x(ogon do góry albo do dołu)
+	ld de, tail_l
+	jp _disptail
+_tailxgreat:	ld de, tail_r		
+	jp _disptail
+_tailydiff:	jr nc, _tailygreat	; Fragmenty różnią się na y(ogon w lewo albo w prawo)
+	ld de, tail_d
+	jp _disptail
+_tailygreat:	ld de, tail_u
+	jp _disptail
+	
+_disptail:	ld (23675), de		; Załadowanie adresu grafiki do zmiennej systemowej UDG
+	ld b, (hl)		; Przejście w odpowiednie współrzędne
+	inc hl
+	ld c, (hl)
+	call GOTOXY
+	ld a, 144		; Wyświetlenie grafiki ogona
 	rst 16
 	ret
 	
@@ -143,7 +184,7 @@ _bodyjp3:	dec hl
 _bodyjp4:	dec hl
 	dec hl
 	dec hl
-	ld a, c		; Zapisanie do a rejestru c z flagami c, z w celu dalszych porównań
+	ld a, c		; Zapisanie do a rejestru c w celu porównań
 	cp %01000110		; Pionowy fragment
 	jp z, _str_v_jp	
 	cp %01100100
@@ -195,7 +236,7 @@ _dispbody:	ld (23675), de		; Zapisanie adresu grafiki do zmiennej systemowej UDG
 	dec b		; Zmniejszenie licznika iteracji
 	jp _bodyloop		; Pętla, aby instrukcje powtórzyły się dla każdego fragmentu
 	
-	
+
 	
 	
 	
