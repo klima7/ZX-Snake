@@ -2,6 +2,7 @@
 START:	ld a, 2		; Wybranie drugieko kanału do otwarcia
 	call 5633		; Wywołanie procedury otwierającej kanał
 	
+	call MENU
 	call LOADLEVEL		; Załadowanie pierwszego poziomu gry
 	call DISPBLOCKS
 	call DISPSCORE
@@ -9,6 +10,7 @@ START:	ld a, 2		; Wybranie drugieko kanału do otwarcia
 _mainloop:	call UPDATEDIR
 	call MOVE	
 	call DISPSNAKE
+	;call GAMEOVER
 	
 	ld b, 15		; Zatrzymanie na chwile gry
 _pause:	halt
@@ -16,20 +18,160 @@ _pause:	halt
 	
 	jp _mainloop
 	ret
-	
-DISPSCORE:	ld a, 1
+
+; Procedura sprawdzająca czy wąż nie zderzył się ze ścianą
+COLIDEWALL:	
+
+; PROCEDURA WYŚWIETLAJĄCA EKRAN PRZED ROZPOCZĘCIEM GRY	
+MENU:	call 3503		; Czyszczenie ekranu
+
+	ld hl, 23560		; Zresetowanie ostatnio wciskanego przycisku
+	ld (hl), 0
+
+	ld a, 1		; Ustaw kanał na 1
 	call 5633
 	
-	ld de, score_str;
-	ld bc, 7
+	ld de, press_str	; Wyświetl "press any key"
+	ld bc, 27
 	call 8252
 	
-	ld hl, score
+	ld a, 2		; Ustaw kanał na 2
+	call 5633
+
+	ld b, 11		; Przejdz na współrzędne napisu "Game over"
+	ld c, 9
+	call GOTOXY
+	
+	ld de, snake_str	; Wyświetl "ZX snake"
+	ld bc, 10
+	call 8252
+	
+	ld b, 0		; Przejdz na współrzędne węża
+	ld c, 8
+	call GOTOXY
+	
+	ld de, str_h		; Ustaw grafikę na ciało węża
+	ld (23675), de
+	
+	ld b, 24		; Rysuj ciało węża
+_snakemenu1:	ld a, 144
+	rst 16
+	djnz _snakemenu1
+	
+	ld de, head_r		; Ustaw grafikę na głowę węża
+	ld (23675), de
+	
+	ld a, 144		; Rysuj głowę węża
+	rst 16
+	
+	ld b, 8		; Przejdz na współrzędne drugiego węża
+	ld c, 10
+	call GOTOXY
+	
+	ld de, head_l		; Ustaw grafikę na głowę węża
+	ld (23675), de
+	
+	ld a, 144		; Rysuj głowę węża
+	rst 16
+	
+	ld de, str_h		; Ustaw grafikę na ciało węża
+	ld (23675), de
+	
+	ld b, 23		; Rysuj ciało węża
+_snakemenu2:	ld a, 144
+	rst 16
+	djnz _snakemenu2
+	
+	ld h, 11
+	ld l, 1
+	
+_textanimloop:	ld a, l
+	cp 1
+	jr z, _textright	; Czy przesówać tekst w lewo czy prawo?
+	
+	dec h		; Przesówanie tekstu w lewo
+	ld a, h
+	cp 0
+	jp nz, _disptext
+	ld l, 1
+	jp _disptext
+	
+_textright:	inc h		; Przesówanie tekstu w prawo
+	ld a, h
+	cp 26
+	jp nz, _disptext
+	ld l, 0
+	jp _disptext
+
+_disptext:	ld b, h		; Przejdz do współrzędnych gdzie trzeba wyświetlić napis
+	ld c, 13
+	call GOTOXY
+
+	ld de, s_str
+	ld bc, 6
+	call 8252
+
+	ld b, 15
+_animpause:	halt
+	djnz _animpause
+	
+	ld a, (23560)		; Sprawdz czy nie wciśnięto przycisku
+	cp 0
+	jp nz, _quitmenu
+	
+	jp _textanimloop
+	
+_quitmenu	call 3503		; Czyszczenie ekranu
+	ret
+		
+; PROCEDURA ZATRZYMUJE PROGRAM DO WCIŚNIĘCIA DOWOLNEGO PRZYCISKU
+PRESSANYKEY:	ld hl, 23560		
+	ld (hl), 0
+_checkpres:	ld a, (23560)
+	cp 0
+	ret nz
+	jp _checkpres
+	
+; Procedura wyświetlająca widok koniec gry
+GAMEOVER:	call 3503		; Czyszczenie ekranu
+
+	ld b, 11		; Przejdz na współrzędne napisu "Game over"
+	ld c, 10
+	call GOTOXY
+	
+	ld de, gameover_str	; Wyświetl "Game over"
+	ld bc, 9
+	call 8252
+	
+	ld b, 12		; Przejdz na współrzędne napisu "Score"
+	ld c, 12
+	call GOTOXY
+	
+	ld de, score_str	; Wyświetl napis score
+	ld bc, 6
+	call 8252
+	
+	ld hl, score		; Wyświetl liczbę będącą wynikiem
 	ld c, (hl)
 	ld b, 0
 	call 6683
 	
-	ld a, 2
+	call PRESSANYKEY
+	ret
+	
+DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
+	call 5633
+	
+	ld de, score_str;	; Wyświetl napis "Score: "
+	ld bc, 6
+	call 8252
+	
+	ld hl, score		; Wyświetl liczbę będącą wynikiem
+	ld c, (hl)
+	ld b, 0
+	call 6683
+	
+	ld a, 2		; Ustaw spowrotem kanał 2
 	call 5633
 	
 	ret

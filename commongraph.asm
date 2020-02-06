@@ -24,4 +24,8 @@ tail_r	defb 0,31,123,255,238,127,31,0
 stairs_u	defb 3,3,15,11,49,59,251,255		; Grafika dla schodów
 stairs_d	defb 192,192,240,208,220,140,223,255
 
-score_str	defb "SCORE: "
+score_str	defb "SCORE:"
+gameover_str	defb "GAME OVER"
+snake_str	defb "ZX SNAKE"
+press_str	defb "     PRESS ANY KEY TO START"
+s_str	defb " Ssss "
