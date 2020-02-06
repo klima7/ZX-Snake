@@ -1,16 +1,114 @@
 ; PIERWSZA WYKONYWANA PROCEDURA
 START:	ld a, 2		; Wybranie drugieko kanału do otwarcia
 	call 5633		; Wywołanie procedury otwierającej kanał
+	
 	call LOADLEVEL		; Załadowanie pierwszego poziomu gry
 	call DISPBLOCKS
+	call DISPSCORE
 	
-	ld b, 11
-	ld c, 10
-	call PUSHSEG
-	
+_mainloop:	call UPDATEDIR
+	call MOVE	
 	call DISPSNAKE
-_here:	jp _here
+	
+	ld b, 15		; Zatrzymanie na chwile gry
+_pause:	halt
+	djnz _pause
+	
+	jp _mainloop
 	ret
+	
+DISPSCORE:	ld a, 1
+	call 5633
+	
+	ld de, score_str;
+	ld bc, 7
+	call 8252
+	
+	ld hl, score
+	ld c, (hl)
+	ld b, 0
+	call 6683
+	
+	ld a, 2
+	call 5633
+	
+	ret
+	
+; FUNKCJA SPRAWDZA WCIŚNIĘTY PRZYCISK I EWENTUALNIE ZMIENIA KIERUNEK WĘŻA
+UPDATEDIR:	ld hl, curdir
+	ld a, (23560)
+	cp 'w'
+	jr z, _updateu
+	cp 's'
+	jr z, _updated
+	cp 'a'
+	jr z, _updatel
+	cp 'd'
+	jr z, _updater
+	
+	ret
+	
+_updateu:	ld (hl), 2
+	ret
+_updated:	ld (hl), 0
+	ret
+_updatel:	ld (hl), 1
+	ret
+_updater:	ld (hl), 3
+	ret
+	
+
+; PROCEDURA PRZEMIESZCZAJĄCA WĘŻA W KIERUNKU JEGO AKTUALNEGO RUCHU	
+MOVE:	ld hl, snake
+	ld b, (hl)
+	inc hl
+	ld c, (hl)
+
+	ld hl, curdir
+	ld a, (hl)
+	
+	cp 0
+	jr z, _moved
+	cp 1
+	jr z, _movel
+	cp 2
+	jr z, _moveu
+	cp 3
+	jr z, _mover
+	
+_movel:	dec b
+	ld a, b
+	cp 255
+	jr nz, _addseg 
+	ld b, 31
+	jr _addseg
+
+_mover:	inc b
+	ld a, b
+	cp 32
+	jr nz, _addseg
+	ld b, 0
+	jr _addseg
+	
+_moveu:	dec c
+	ld a, c
+	cp 255
+	jr nz, _addseg
+	ld c, 21
+	jr _addseg
+	
+_moved:	inc c
+	ld a, c
+	cp 22
+	jr nz, _addseg
+	ld c, 0
+	jr _addseg
+	
+_addseg:	call PUSHSEG
+	call POPSEG
+	ret
+
+
 	
 ; PROCEDURA ŁADUJĄCA POZIOM, KTÓREGO NUMER ZNAJDUJE SIĘ W CURLEVELNR		
 LOADLEVEL:	ld hl, curlevelnr	; Wczytanie do rejestru b numeru poziomu, który chcemy załadować
@@ -29,7 +127,11 @@ _lvlcopy:	ld de, currentlvl	; Gdy znamy adres poziomu który chcemy załadować,
 	ret
 	
 ; PROCEDURA WYŚWIETLAJĄCA WSZYSTKIE ŚCIANY 
-DISPBLOCKS:	ld hl, blocks
+DISPBLOCKS:	ld b, 0		; Przejście na początek ekranu
+	ld c, 0
+	call GOTOXY
+
+	ld hl, blocks
 	ld b, 88
 _bytejp:	ld c, b
 	ld b, 8
@@ -103,15 +205,21 @@ DISPTAIL:
 	adc hl, de
 	adc hl, de
 	
-	dec hl		; Sprawdzenie czy róźni się od poprzedniego fragmentu na x czy y
+	dec hl		; Sprawdzenie czy róźni się od poprzedniego fragmentu na x
 	dec hl
 	ld a, (hl)
 	inc hl
 	inc hl
 	cp (hl)
 	jr nz, _tailxdiff
-	jp _tailydiff
-
+	
+	dec hl		; Sprawdzenie czy róźni się od poprzedniego fragmentu na x
+	ld a, (hl)
+	inc hl
+	inc hl
+	cp (hl)
+	jr nz, _tailydiff
+	
 	
 _tailxdiff:	jr nc, _tailxgreat	; Fragmenty różnią się na x(ogon do góry albo do dołu)
 	ld de, tail_l
@@ -119,9 +227,11 @@ _tailxdiff:	jr nc, _tailxgreat	; Fragmenty różnią się na x(ogon do góry alb
 _tailxgreat:	ld de, tail_r		
 	jp _disptail
 _tailydiff:	jr nc, _tailygreat	; Fragmenty różnią się na y(ogon w lewo albo w prawo)
-	ld de, tail_d
+	ld de, tail_u
+	dec hl
 	jp _disptail
-_tailygreat:	ld de, tail_u
+_tailygreat:	ld de, tail_d
+	dec hl
 	jp _disptail
 	
 _disptail:	ld (23675), de		; Załadowanie adresu grafiki do zmiennej systemowej UDG
@@ -278,6 +388,29 @@ PUSHSEG:	push bc		; Obłożenie na stos, bo potrzebujemy bc do instrukcji lddr
 	
 	ld hl, snakelen	; Zwiększenie długości węża o jeden
 	inc (hl)
+	ret
+
+; PROCEDURA USÓWAJĄCA Z WĘŻA OSTATNI SEGMENT	
+POPSEG:	ld hl, snakelen	; Odnalezienie fragmentu odpowiadającego za ogon
+	ld d, 0
+	ld e, (hl)
+	dec de
+	ld hl, snake
+	adc hl, de
+	adc hl, de
+	
+	ld b, (hl)
+	inc hl
+	ld c, (hl)
+	call GOTOXY
+	
+	ld hl, freespace
+	ld (23675), hl
+	ld a, 144
+	rst 16
+
+	ld hl, snakelen
+	dec (hl)
 	ret
 	
 	

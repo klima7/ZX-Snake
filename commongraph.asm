@@ -1,4 +1,4 @@
-str_h	defb 0,255,187,255,238,255,255,0	; Grafiki dla prostego fragmentu węża
+str_h:	defb 0,255,187,255,238,255,255,0	; Grafiki dla prostego fragmentu węża
 str_v	defb 126,122,126,110,126,122,126,110
 
 turn_dl	defb 0,192,176,248,116,252,222,122		; Grafiki dla skręcającego fragmentu węża
@@ -23,3 +23,5 @@ tail_r	defb 0,31,123,255,238,127,31,0
 
 stairs_u	defb 3,3,15,11,49,59,251,255		; Grafika dla schodów
 stairs_d	defb 192,192,240,208,220,140,223,255
+
+score_str	defb "SCORE: "
