@@ -3,6 +3,11 @@ START:	ld a, 2		; Wybranie drugieko kanału do otwarcia
 	call 5633		; Wywołanie procedury otwierającej kanał
 	call LOADLEVEL		; Załadowanie pierwszego poziomu gry
 	call DISPBLOCKS
+	
+	ld b, 11
+	ld c, 10
+	call PUSHSEG
+	
 	call DISPSNAKE
 _here:	jp _here
 	ret
@@ -184,7 +189,9 @@ _bodyjp3:	dec hl
 _bodyjp4:	dec hl
 	dec hl
 	dec hl
+	
 	ld a, c		; Zapisanie do a rejestru c w celu porównań
+	
 	cp %01000110		; Pionowy fragment
 	jp z, _str_v_jp	
 	cp %01100100
@@ -209,6 +216,7 @@ _bodyjp4:	dec hl
 	jp z, _turn_dr_jp
 	cp %01101001	
 	jp z, _turn_dr_jp
+	
 _turn_dl_jp:	ld de, turn_dl		; Załadowanie do de adresu odpowiedniej grafiki
 	jp _dispbody
 _turn_ul_jp:	ld de, turn_ul
@@ -221,6 +229,7 @@ _str_h_jp:	ld de, str_h
 	jp _dispbody
 _str_v_jp:	ld de, str_v
 	jp _dispbody
+	
 _dispbody:	ld (23675), de		; Zapisanie adresu grafiki do zmiennej systemowej UDG
 	ld e, b		; Tymczasowe przeniesienie licznika iteracji do e, bo potrzebujemy b
 	ld b, (hl)		; Zapisanie do b i c współrzędnych rysowania
@@ -237,6 +246,39 @@ _dispbody:	ld (23675), de		; Zapisanie adresu grafiki do zmiennej systemowej UDG
 	jp _bodyloop		; Pętla, aby instrukcje powtórzyły się dla każdego fragmentu
 	
 
+; PROCEGURA DODAJĄCA NOWY SEGMENT DO WĘŻA O WSPÓŁRZĘDNYCH X=B Y=C
+PUSHSEG:	push bc		; Obłożenie na stos, bo potrzebujemy bc do instrukcji lddr
+
+	ld a, (snakelen)	; Obliczenie długości kopiowanych danych
+	sla a
+	ld b, 0
+	ld c, a
+
+	ld hl, snakelen	; Obliczenie adresu źródłowego
+	ld d, 0
+	ld e, (hl)
+	ld hl, snake
+	adc hl, de
+	adc hl, de
+	dec hl
+	
+	ld d, h		; Obliczenie adresu docelowego
+	ld e, l
+	inc de
+	inc de
+	
+	lddr		; Kopiowanie
+	
+	pop bc		; Obzyskanie odłorzonych wcześniej współrzędnych x, y
+	
+	ld hl, snake		; Wpisanie współrzędnych x, y w pierwszy segment
+	ld (hl), b
+	inc hl
+	ld (hl), c
+	
+	ld hl, snakelen	; Zwiększenie długości węża o jeden
+	inc (hl)
+	ret
 	
 	
 	

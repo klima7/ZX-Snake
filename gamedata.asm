@@ -2,7 +2,7 @@
 
 snake	defb 10, 10, 10, 11, 10, 12, 9, 12, 8, 12, 8, 13	; Wektor z elementami węża postaci (x, y), (x, y)...
 	defs 2*22*32-12	
-snakelen	defb 5		; Aktualna długość węża
+snakelen	defb 6		; Aktualna długość węża
 
 curdir	defb 0		; Aktualny kierunek węża
 newdir	defb 0		; Kierunek gdzie chce się ruszyć gracz
