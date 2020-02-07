@@ -1,29 +1,90 @@
 ; PIERWSZA WYKONYWANA PROCEDURA
-START:	ld a, 2		; Wybranie drugieko kanału do otwarcia
-	call 5633		; Wywołanie procedury otwierającej kanał
-	
+START:	
 	call MENU
-	call LOADLEVEL		; Załadowanie pierwszego poziomu gry
+
+
+; PROCEDURA ROZPOCZYNAJACA GRE DANEGO POZIOMU
+STARTLEVEL:
 	call DISPBLOCKS
 	call DISPSCORE
 	
 _mainloop:	call UPDATEDIR
 	call MOVE	
+	call COLIDEWALL
 	call DISPSNAKE
-	;call GAMEOVER
 	
 	ld b, 15		; Zatrzymanie na chwile gry
 _pause:	halt
 	djnz _pause
 	
 	jp _mainloop
-	ret
+	ret	
 
 ; Procedura sprawdzająca czy wąż nie zderzył się ze ścianą
-COLIDEWALL:	
+COLIDEWALL:	ld hl, blocks
+
+	ld de, 4		; Przejście do odpowiedniego wiersza
+	ld a, (snake+1)
+_cwrowloop:	cp 0
+	jr z, _cwcalcbyte
+	adc hl, de
+	dec a
+	jp _cwrowloop
+	
+_cwcalcbyte:	ld a, (snake)		; Przejście do odpowiedniego bajta
+_cwbyteloop:	cp 8
+	jr c, _cwcalcbit
+	inc hl
+	sub 8
+	jp _cwbyteloop
+
+_cwcalcbit:	ld c, (hl)		; Przejście do odpowiedniego bita
+_cwbitloop	cp 0
+	jr z, _cwbitcalced
+	sla c
+	dec a
+	jp _cwbitloop
+	
+_cwbitcalced:	sla c
+	jp c, GAMEOVER		; Reakcja na zderzenie ze ścianą
+	ret
+
+; PROCEDURA USTAWIA WSZYSTKIE ZMIENNEJ PO PRZEGRANEJ
+RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragmentów
+	ld (hl), 12
+	inc hl
+	ld (hl), 10
+	inc hl
+	ld (hl), 11
+	inc hl
+	ld (hl), 10
+	inc hl
+	ld (hl), 10
+	inc hl
+	ld (hl), 10
+	
+	ld hl, snakelen	; Ustawienie długości węża na 3
+	ld (hl), 3
+	
+	ld hl, curdir		; Ustalenie aktualnego kierunku w prawo
+	ld (hl), 3
+	
+	ld hl, newdir		; Ustalenie następnego kierunku w prawo
+	ld (hl), 3
+	
+	ld hl, score		; Wyzerowanie wyniku
+	ld (hl), 0
+	
+	ld hl, curlevelnr	; Wyzerowanie poziomu
+	ld (hl), 0
+	
+	ret
 
 ; PROCEDURA WYŚWIETLAJĄCA EKRAN PRZED ROZPOCZĘCIEM GRY	
 MENU:	call 3503		; Czyszczenie ekranu
+
+	ld a, 2		; Wybranie drugieko kanału do otwarcia
+	call 5633		; Wywołanie procedury otwierającej kanał
 
 	ld hl, 23560		; Zresetowanie ostatnio wciskanego przycisku
 	ld (hl), 0
@@ -121,7 +182,10 @@ _animpause:	halt
 	
 	jp _textanimloop
 	
-_quitmenu	call 3503		; Czyszczenie ekranu
+_quitmenu:	call 3503		; Czyszczenie ekranu
+	call RESETGAME
+	call LOADLEVEL		; Załadowanie pierwszego poziomu gry
+	call STARTLEVEL	; Uruchomienie pierwszego poziomu
 	ret
 		
 ; PROCEDURA ZATRZYMUJE PROGRAM DO WCIŚNIĘCIA DOWOLNEGO PRZYCISKU
@@ -157,6 +221,7 @@ GAMEOVER:	call 3503		; Czyszczenie ekranu
 	call 6683
 	
 	call PRESSANYKEY
+	jp MENU
 	ret
 	
 DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
@@ -222,29 +287,25 @@ _movel:	dec b
 	ld a, b
 	cp 255
 	jr nz, _addseg 
-	ld b, 31
-	jr _addseg
+	jp GAMEOVER
 
 _mover:	inc b
 	ld a, b
 	cp 32
 	jr nz, _addseg
-	ld b, 0
-	jr _addseg
+	jp GAMEOVER
 	
 _moveu:	dec c
 	ld a, c
 	cp 255
 	jr nz, _addseg
-	ld c, 21
-	jr _addseg
+	jp GAMEOVER
 	
 _moved:	inc c
 	ld a, c
 	cp 22
 	jr nz, _addseg
-	ld c, 0
-	jr _addseg
+	jp GAMEOVER
 	
 _addseg:	call PUSHSEG
 	call POPSEG
