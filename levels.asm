@@ -1,35 +1,76 @@
-levels	defb 16,16,16,56,56,56,56,16		; Grafika mysz dół
-	defb 0,0,120,255,120,0,0,0		; Grafika mysz lewo
-	defb 8,28,28,28,28,8,8,8		; Grafika mysz góra
-	defb 0,0,0,30,255,30,0,0		; Grafika mysz prawo
-	defb 2,3,28,60,60,56,192,64		; Grafika dla cukierka
-	defb 255,255,255,255,255,255,255,255	; Grafika dla bloku
-	defb 0,0,0,24,24,0,0,0		; Grafika dla wolnej przestrzeni
-	defb 255, 255, 255, 255		; Mapa z blokami
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 128, 0, 0, 1
-	defb 255, 255, 255, 255
-	defb 10, 10			; Współrzędne wejścia x, y
-	defb 20, 20			; Współrzędne wyjścia x, y
-	defb 0, 10			; Wynik potrzebny do otwarcia wyjścia
-	defb 0			; Kierunek w którym ma się poruszać wąż po pojawieniu się
+	; POZIOM 0
+levels	defb 16,16,16,56,56,56,56,16			; Grafika mysz dół
+	defb 0,0,120,255,120,0,0,0			; Grafika mysz lewo
+	defb 8,28,28,28,28,8,8,8			; Grafika mysz góra
+	defb 0,0,0,30,255,30,0,0			; Grafika mysz prawo
+	defb 2,3,28,60,60,56,192,64			; Grafika dla cukierka
+	defb 255,255,255,255,255,255,255,255		; Grafika dla bloku
+	defb 0,0,0,24,24,0,0,0			; Grafika dla wolnej przestrzeni
+	defb %11111111, %11111111, %11111111, %11111111	; Mapa z blokami
 	
-levellen	equ $-levels			; Ile bajtów zajmuje każdy poziom
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %10000000, %00000000, %00000000, %00000001
+	defb %11111111, %11111111, %11111111, %11111111
+	
+	defb 10, 10				; Współrzędne wejścia x, y
+	defb 20, 20				; Współrzędne wyjścia x, y
+	defb 0, 10				; Wynik potrzebny do otwarcia wyjścia
+	defb 0				; Kierunek w którym ma się poruszać wąż po pojawieniu się
+	
+levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
+
+
+	; POZIOM 1
+	defb 0,126,60,126,60,126,24,24		; Grafika coś dół
+	defb 0,42,62,254,254,62,42,0			; Grafika coś lewo
+	defb 24,24,126,60,126,60,126,0		; Grafika coś góra
+	defb 0,84,124,127,127,124,84,0		; Grafika coś prawo
+	defb 24,118,94,251,191,106,126,24		; Grafika dla ciastka
+	defb 170,85,170,85,170,85,170,85		; Grafika dla bloku
+	defb 0,68,0,0,0,68,0,0			; Grafika dla wolnej przestrzeni
+	
+	defb %00000000, %00000000, %00000000, %00000000	; Mapa z blokami
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00111110, %00000000, %00000000, %01111100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00100000, %00000000, %00000000, %00000100
+	defb %00111110, %00000000, %00000000, %01111100
+	defb %00000000, %00000000, %00000000, %00000000
+	defb %00000000, %00000000, %00000000, %00000000
+	
+	defb 10, 10				; Współrzędne wejścia x, y
+	defb 20, 20				; Współrzędne wyjścia x, y
+	defb 0, 10				; Wynik potrzebny do otwarcia wyjścia
+	defb 0

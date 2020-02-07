@@ -142,9 +142,11 @@ _creatdraw:	ld a, b		; Gdy stworzenie w nic nie uderzyło
 	
 	
 ; FUNKCJA ZWIĘKSZA WYNIK O ZAWARTOŚĆ REJESTRU B
-INCSCORE:	ld a, (score)
-	add a, b
-	ld (score), a
+INCSCORE:	ld hl, (score)
+	ld d, b
+	ld e, 0
+	adc hl, de
+	ld (score), hl
 	call DISPSCORE
 	ret
 	
@@ -406,9 +408,11 @@ RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragme
 	
 	ld hl, score		; Wyzerowanie wyniku
 	ld (hl), 0
+	inc hl
+	ld (hl), 0
 	
 	ld hl, curlevelnr	; Wyzerowanie poziomu
-	ld (hl), 0
+	ld (hl), 1
 	
 	call RANDMEAL
 	call RANDCREATDIR
@@ -571,9 +575,10 @@ DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
 	ld bc, 6
 	call 8252
 	
-	ld hl, score		; Wyświetl liczbę będącą wynikiem
-	ld c, (hl)
-	ld b, 0
+	ld a, (score)
+	ld b, a
+	ld a, (score+1)
+	ld c, a
 	call 6683
 	
 	ld a, 2		; Ustaw spowrotem kanał 2

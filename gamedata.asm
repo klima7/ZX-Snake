@@ -4,10 +4,10 @@ snake	defb 10, 10, 10, 11, 10, 12, 9, 12, 8, 12, 8, 13	; Wektor z elementami wę
 	defs 2*22*32-12	
 snakelen	defb 6		; Aktualna długość węża
 growlen	defb 0		; Długość o jaką ma urosnąć wąż
+prevlvllen	defb 0		; Długość węża na poprzednim poziomie
 
 curdir	defb 3		; Aktualny kierunek węża
-totallen	defb 0		; Całkowita długość węża
-score	defs 0		; Wynik wyświetlany na ekranie
+score	defb 0, 0		; Wynik wyświetlany na ekranie
 curlevelnr	defb 0		; Aktualny poziom
 
 creatx	defb 0		; Pozycja poruszającego się jedzenia
