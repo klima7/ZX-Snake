@@ -10,7 +10,6 @@ STARTLEVEL:
 	
 _mainloop:	call UPDATEDIR
 	call MOVE	
-	call COLIDEWALL
 	call DISPSNAKE
 	
 	ld b, 15		; Zatrzymanie na chwile gry
@@ -19,19 +18,34 @@ _pause:	halt
 	
 	jp _mainloop
 	ret	
+	
+; SPRAWDZENIE CZY W MIEJSCU X=B Y=C ZNAJDUJE SIE ELEMENT Z KTORYM WĄŻ MOŻE SIĘ ZDERZYĆ
+CHECKSNAKEHIT:	ld a, (snake)
+	ld b, a
+	ld a, (snake+1)
+	ld c, a
 
-; Procedura sprawdzająca czy wąż nie zderzył się ze ścianą
-COLIDEWALL:	ld hl, blocks
+	call CHECKWALL		; Sprawdzenie czy wąż nie zdeżył się ze ścianą
+	jp c, GAMEOVER
+	
+	call CHECKSNAKE	; Sprawdzenie czy wąż nie zderzył się ze sobą
+	jp c, GAMEOVER
+	
+	ret
+	
+; PROCEDURA SPRAWDZAJĄCA W MIEJSCU X=B Y=C ZNAJDUJE SIĘ ŚCIANA, ZWRACA WYNIK W POSTACI FLAGI CARRY
+CHECKWALL:	ld hl, blocks
+	push bc
 
 	ld de, 4		; Przejście do odpowiedniego wiersza
-	ld a, (snake+1)
+	ld a, c
 _cwrowloop:	cp 0
 	jr z, _cwcalcbyte
 	adc hl, de
 	dec a
 	jp _cwrowloop
 	
-_cwcalcbyte:	ld a, (snake)		; Przejście do odpowiedniego bajta
+_cwcalcbyte:	ld a, b		; Przejście do odpowiedniego bajta
 _cwbyteloop:	cp 8
 	jr c, _cwcalcbit
 	inc hl
@@ -46,7 +60,43 @@ _cwbitloop	cp 0
 	jp _cwbitloop
 	
 _cwbitcalced:	sla c
-	jp c, GAMEOVER		; Reakcja na zderzenie ze ścianą
+	pop bc
+	ret
+	
+; PROCEDURA SPRAWDZAJĄCA W MIEJSCU X=B Y=C ZNAJDUJE SIĘ ELEMENT WĘŻA, ZWRACA WYNIK W POSTACI FLAGI CARRY
+CHECKSNAKE:	push bc		; Zachowanie rejestru bc
+
+	ld d, b		; Przemieszczenie współzędnych by ich nie stracić
+	ld e, c
+	
+	ld hl, snake		; Ustawienie wskaźńika na początek obszaru z fragmentami węża
+	inc hl
+	inc hl
+	
+	ld a, (snakelen)	; Pobranie liczby segmentów do sprawdzenia
+	dec a
+	ld b, a
+	
+_cssegloop:	ld a, (hl)		; Porównanie współrzędnych x
+	cp d
+	jp nz, _csinc2
+	
+	inc hl		; Porównanie współrzędnych y
+	ld a, (hl)
+	cp e
+	jp nz, _csinc1
+	
+	pop bc		; Znaleziono fragment - ustawienie flagi carry
+	scf		
+	ret
+	
+_csinc2:	inc hl
+_csinc1:	inc hl
+	djnz _cssegloop	; Sprawdzanie kolejnego fragmentu węża
+
+	pop bc		; Nie znaleziono fragmentu węża - wyzeruj flagę carry
+	scf		
+	ccf
 	ret
 
 ; PROCEDURA USTAWIA WSZYSTKIE ZMIENNEJ PO PRZEGRANEJ
@@ -62,9 +112,21 @@ RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragme
 	ld (hl), 10
 	inc hl
 	ld (hl), 10
+	inc hl
+	ld (hl), 9
+	inc hl
+	ld (hl), 10
+	inc hl
+	ld (hl), 8
+	inc hl
+	ld (hl), 10
+	inc hl
+	ld (hl), 7
+	inc hl
+	ld (hl), 10
 	
 	ld hl, snakelen	; Ustawienie długości węża na 3
-	ld (hl), 3
+	ld (hl), 6
 	
 	ld hl, curdir		; Ustalenie aktualnego kierunku w prawo
 	ld (hl), 3
@@ -309,6 +371,7 @@ _moved:	inc c
 	
 _addseg:	call PUSHSEG
 	call POPSEG
+	call CHECKSNAKEHIT
 	ret
 
 
