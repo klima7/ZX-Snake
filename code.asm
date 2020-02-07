@@ -1,5 +1,5 @@
 ORG 32768				; Umieszczenie kodu na początu przestrzeni użytkownika
-jp START				; Skok do procedury rozpoczynającej
+jp MENU				; Skok do procedury rozpoczynającej
 ret				
 
 INCLUDE C:\Users\ukasz\Desktop\ZXGame\gamedata.asm	; Dołączanie danych

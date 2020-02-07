@@ -1,15 +1,13 @@
-; PIERWSZA WYKONYWANA PROCEDURA
-START:	
-	call MENU
-
 
 ; PROCEDURA ROZPOCZYNAJACA GRE DANEGO POZIOMU
 STARTLEVEL:
 	call DISPBLOCKS
 	call DISPSCORE
+	call DISPMEAL
 	
 _mainloop:	call UPDATEDIR
 	call MOVE	
+	call CHECKEATMEAL
 	call DISPSNAKE
 	
 	ld b, 15		; Zatrzymanie na chwile gry
@@ -19,8 +17,79 @@ _pause:	halt
 	jp _mainloop
 	ret	
 	
+; FUNKCJA ZWIĘKSZA WYNIK O ZAWARTOŚĆ REJESTRU B
+INCSCORE:	ld a, (score)
+	add a, b
+	ld (score), a
+	call DISPSCORE
+	ret
+	
+; FUNKCJA USTALA DLA JEDZENIA LOSOWE WSPÓŁRZĘDNE
+RANDMEAL:	call RANDFREEPOS
+	ld hl, mealx
+	ld (hl), b
+	ld hl, mealy
+	ld (hl), c
+	call DISPMEAL
+	ret
+	
+; FUNKCJA WYŚWIETLA JEDZENIE DLA WĘŻA
+DISPMEAL:	ld hl, meal		; Ustawienie aktualnej grafiki na jedzenie
+	ld (23675), hl	
+	
+	ld a, (mealx)		; Wczytanie do bc współrzędnych jedzenia
+	ld b, a
+	ld a, (mealy)
+	ld c, a
+	
+	call GOTOXY		; Przejście na współrzędne jedzenia
+	
+	ld a, 144		; Wydrukowanie jedzenia
+	rst 16
+	ret
+	
+; FUNKCJA LOSUJE POZYCJE NA EKRANIE I ZAPISUJE WSPÓŁRZĘDNE DO BC: B=X Y=C
+RANDOMPOS:	call RANDOM		; Wylosowanie współrzędnej x
+	and %00011111
+	ld b, a
+	
+	call RANDOM		; Wylosowanie pierwszego składnika współrzędnej y
+	and %00001111
+	ld d, a
+	
+	call RANDOM		; Wylosowanie drugiego składnika współrzędnej y
+	and %00000111
+	
+	add a, d		; Dodanie składników współrzędnej y
+	ld c, a
+	ret
+	
+; FUNKCJA LOSUJE POZYCJE NA KTÓREJ NIC SIĘ NIE ZNAJDUJE I ZWRACA WYNIK W BC
+RANDFREEPOS:	call RANDOMPOS
+	call CHECKSTH
+	jr c, RANDFREEPOS
+	ret
+
+; PROCEDURA ZAPISUJE W A LICZBĘ PSEUDOLOSOWĄ PRZEZ ODCZYTANIE KOLEJNEGO BAJTA Z ROM(JEDYNA PROCEDURA NIE NAPISANA PRZEZE MNIE)	
+RANDOM: 	ld hl,(_seed)       ; Wskaźnik w pamięć rom
+	ld a,h
+	and 31              ; Zabespieczenie przed wyjściem z pamięci rom
+	ld h,a
+	ld a,(hl)           ; Pobranie liczby pseudo-losowej
+	inc hl              ; Zwiększenie wskaźnika
+	ld (_seed),hl
+	ret
+_seed:   	defw 0
+	
+; FUNKCJA SPRAWDZA CZY NA POZYCJI X=B Y=C ZNAJDUJE SIĘ COKOLWIEK
+CHECKSTH:	call CHECKWALL		; Sprawdzenie czy wąż nie zdeżył się ze ścianą
+	ret c
+	
+	call CHECKSNAKE	; Sprawdzenie czy wąż nie zdeżył się ze ścianą
+	ret
+	
 ; SPRAWDZENIE CZY W MIEJSCU X=B Y=C ZNAJDUJE SIE ELEMENT Z KTORYM WĄŻ MOŻE SIĘ ZDERZYĆ
-CHECKSNAKEHIT:	ld a, (snake)
+CHECKSNAKEHIT:	ld a, (snake)		; Pobranie współrzędnych głowy do bc
 	ld b, a
 	ld a, (snake+1)
 	ld c, a
@@ -28,10 +97,27 @@ CHECKSNAKEHIT:	ld a, (snake)
 	call CHECKWALL		; Sprawdzenie czy wąż nie zdeżył się ze ścianą
 	jp c, GAMEOVER
 	
-	call CHECKSNAKE	; Sprawdzenie czy wąż nie zderzył się ze sobą
+	call CHECKSNAKE	; Sprawdzenie czy wąż nie zdeżył się ze ścianą
 	jp c, GAMEOVER
 	
 	ret
+	
+; PROCEDURA SPRAWDZAJACA CZY WĄŻ NIE ZJADŁ JEDZENIA
+CHECKEATMEAL:	ld a, (snake)		; Porównanie współrzędnych x
+	ld hl, mealx
+	cp (hl)
+	jr nz, _cmret
+	
+	ld a, (snake+1)	; Porównanie współrzędnych y
+	ld hl, mealy
+	cp (hl)
+	jr nz, _cmret
+	
+	call RANDMEAL		; Instrukcje wykonywane gdy wąż zjadł jedzenie
+	ld b, meal_score
+	call INCSCORE
+	
+_cmret:	ret
 	
 ; PROCEDURA SPRAWDZAJĄCA W MIEJSCU X=B Y=C ZNAJDUJE SIĘ ŚCIANA, ZWRACA WYNIK W POSTACI FLAGI CARRY
 CHECKWALL:	ld hl, blocks
@@ -139,6 +225,8 @@ RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragme
 	
 	ld hl, curlevelnr	; Wyzerowanie poziomu
 	ld (hl), 0
+	
+	call RANDMEAL
 	
 	ret
 
@@ -288,6 +376,10 @@ GAMEOVER:	call 3503		; Czyszczenie ekranu
 	
 DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
 	call 5633
+	
+	ld b, 0		; Przejście na odpowiednią pozycję
+	ld c, 1
+	call GOTOXY
 	
 	ld de, score_str;	; Wyświetl napis "Score: "
 	ld bc, 6

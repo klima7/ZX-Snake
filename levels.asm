@@ -2,7 +2,7 @@ levels	defb 24,60,126,219,255,36,90,165	; Grafika mysz dół
 	defb 0,0,120,255,120,0,0,0		; Grafika mysz lewo
 	defb 8,28,28,28,28,8,8,8		; Grafika mysz góra
 	defb 0,0,0,30,255,30,0,0		; Grafika mysz prawo
-	defb 3,3,15,11,49,59,251,255		; Grafika dla jabłka
+	defb 2,3,28,60,60,56,192,64		; Grafika dla cukierka
 	defb 255,255,255,255,255,255,255,255	; Grafika dla bloku
 	defb 0,0,0,24,24,0,0,0		; Grafika dla wolnej przestrzeni
 	defb 255, 255, 255, 255		; Mapa z blokami

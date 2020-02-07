@@ -14,15 +14,15 @@ creatx	defb 0		; Pozycja poruszającego się jedzenia
 creaty	defb 0
 creatvx	defb 0		; Kierunek poruszającego się jedzenia
 creatvy	defb 0
-mealx	defb 0		; Pozycja nieruchomego jedzenia
-mealy	defb 0
+mealx	defb 5		; Pozycja nieruchomego jedzenia
+mealy	defb 5
 
 currentlvl
 creatd	defs 8		; Grafika dla poruszającego się w jedzenia w aktualnym poziomie
 creatl	defs 8		
 creatu	defs 8		
 creatr	defs 8		
-meal	defs 8		; Grafika dla nieruchomego jedzenia aktualnego poziomu
+meal	defs 8		; Grafika dla jedzenia aktualnego poziomu
 block	defs 8		; Grafika dla ściany aktualnego poziomu
 freespace	defs 8		; Grafika dla wolnej przestrzeni aktualnego poziomu
 blocks	defs 88		; Mapa z blokami aktualnego poziomu

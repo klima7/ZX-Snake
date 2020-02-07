@@ -29,3 +29,5 @@ gameover_str	defb "GAME OVER"
 snake_str	defb "ZX SNAKE"
 press_str	defb "     PRESS ANY KEY TO START"
 s_str	defb " Ssss "
+
+meal_score	equ 10
