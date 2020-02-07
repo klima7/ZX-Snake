@@ -4,10 +4,13 @@ STARTLEVEL:
 	call DISPBLOCKS
 	call DISPSCORE
 	call DISPMEAL
+	call DISPCREAT
 	
 _mainloop:	call UPDATEDIR
 	call MOVE	
+	call UPDATECREAT
 	call CHECKEATMEAL
+	call CHECKEATCREAT
 	call DISPSNAKE
 	
 	ld b, 15		; Zatrzymanie na chwile gry
@@ -16,6 +19,127 @@ _pause:	halt
 	
 	jp _mainloop
 	ret	
+	
+; PROCEDURA LOSUJE KIERUNEK PORUSZAJĄCEGO SIĘ STWORZENIA
+RANDCREATDIR:	call RANDOM
+	and %00000011
+	ld (creatdir), a
+	ret
+	
+; PROCEDURA LOSUJE WSPÓŁRZĘDNE PORUSZAJĄCEGO SIĘ STWORZENIA
+RANDCREATPOS:	call RANDFREEPOS
+	ld hl, creatx
+	ld (hl), b
+	ld hl, creaty
+	ld (hl), c
+	call DISPCREAT
+	ret
+	
+; PROCEDURA WYŚWIETLA PORUSZAJĄCE SIĘ STWORZENIE
+DISPCREAT:	ld a, (creatdir)	; Załadowanie kierunku do a w celu porównań
+
+	cp 0		; Wybranie odpowiedniej grafiki w zaleźności od kierunku
+	jp z, _setdird
+	cp 1
+	jp z, _setdirl
+	cp 2
+	jp z, _setdiru
+	cp 3
+	jp z, _setdirr
+	ret
+	
+_setdird:	ld hl, creatd		; Ładowanie do hl adresu odpowiedniej grafiki
+	jp _disp
+_setdirl:	ld hl, creatl
+	jp _disp
+_setdiru:	ld hl, creatu
+	jp _disp
+_setdirr:	ld hl, creatr
+	jp _disp
+
+_disp:	ld (23675), hl		; Załadowanie wybranego UDG
+	
+	ld a, (creatx)		; Przejście na odpowiednie współrzędne
+	ld b, a
+	ld a, (creaty)
+	ld c, a	
+	call GOTOXY
+
+	ld a, 144		; Wyświetlenie grafiki
+	rst 16
+	
+	ret
+	
+UPDATECREAT:	ld a, (creatx)		; Wczytanie do BC współrzędnych stworzenia
+	ld b, a
+	ld a, (creaty)
+	ld c, a
+	
+	call GOTOXY		; Przejście do tych współrzędnych
+	
+	ld hl, freespace	; Załadowanie do UDG grafiki pustej przestrzeni
+	ld (23675), hl		
+	
+	ld a, 144		; Wyświetlenie grafiki pustej przestrzeni
+	rst 16
+	
+	push bc		; Zachowanie starej pozycji bo może się przydać
+	
+	ld a, (creatdir)	; Wczytanie kierunku do a w celu porównań
+	
+	cp 0		
+	jr z, _movecreatd
+	cp 1
+	jr z, _movecreatl
+	cp 2
+	jr z, _movecreatu
+	cp 3
+	jr z, _movecreatr
+	
+_movecreatl:	dec b		; W lewo
+	ld a, b
+	cp 255
+	jr nz, _creatmayhit 
+	jp _creathit
+
+_movecreatr:	inc b		; W Prawo
+	ld a, b
+	cp 32
+	jr nz, _creatmayhit
+	jp _creathit
+	
+_movecreatu:	dec c		; W góre
+	ld a, c
+	cp 255
+	jr nz, _creatmayhit
+	jp _creathit
+	
+_movecreatd:	inc c		; W dół
+	ld a, c
+	cp 22
+	jr nz, _creatmayhit
+	jp _creathit
+	
+_creatmayhit:	call CHECKSTH		; Sprawdzenie czy stworzenie w coś nie uderzyło
+	jr c, _creathit
+	jp _creatnothit
+	
+_creatnothit:	pop de
+	jp _creatdraw
+	
+_creathit:	call RANDCREATDIR
+	pop bc
+	jp _creatdraw		; Gdy stworzenie w coś uderzyło
+
+
+_creatdraw:	ld a, b		; Gdy stworzenie w nic nie uderzyło
+	ld (creatx), a		; Zapisz nowe współrzędne stworzenia
+	ld a, c
+	ld (creaty), a
+	call DISPCREAT
+	ret
+	
+	
 	
 ; FUNKCJA ZWIĘKSZA WYNIK O ZAWARTOŚĆ REJESTRU B
 INCSCORE:	ld a, (score)
@@ -54,13 +178,18 @@ RANDOMPOS:	call RANDOM		; Wylosowanie współrzędnej x
 	ld b, a
 	
 	call RANDOM		; Wylosowanie pierwszego składnika współrzędnej y
-	and %00001111
+	and %00000111
 	ld d, a
 	
 	call RANDOM		; Wylosowanie drugiego składnika współrzędnej y
 	and %00000111
+	add a, d	
+	ld d, a
 	
-	add a, d		; Dodanie składników współrzędnej y
+	call RANDOM		; Wylosowanie trzeciego składnika współrzędnej y
+	and %00000111
+	add a, d	
+	
 	ld c, a
 	ret
 	
@@ -82,10 +211,16 @@ RANDOM: 	ld hl,(_seed)       ; Wskaźnik w pamięć rom
 _seed:   	defw 0
 	
 ; FUNKCJA SPRAWDZA CZY NA POZYCJI X=B Y=C ZNAJDUJE SIĘ COKOLWIEK
-CHECKSTH:	call CHECKWALL		; Sprawdzenie czy wąż nie zdeżył się ze ścianą
+CHECKSTH:	call CHECKWALL		; Sprawdzenie czy na pozycji nie ma ściany
 	ret c
 	
-	call CHECKSNAKE	; Sprawdzenie czy wąż nie zdeżył się ze ścianą
+	call CHECKMEAL		; Sprawdzenie czy na pozycji nie ma jedzenia
+	ret c
+	
+	call CHECKCREAT	; Sprawdzenie czy na pozycji nie ma stworzenia
+	ret c
+	
+	call CHECKSNAKE	; Sprawdzenie czy na pozycji nie ma węża
 	ret
 	
 ; SPRAWDZENIE CZY W MIEJSCU X=B Y=C ZNAJDUJE SIE ELEMENT Z KTORYM WĄŻ MOŻE SIĘ ZDERZYĆ
@@ -121,6 +256,21 @@ CHECKEATMEAL:	ld a, (snake)		; Porównanie współrzędnych x
 	inc (hl)
 	
 _cmret:	ret
+
+; PROCEDURA SPRAWDZAJACA CZY WĄŻ NIE ZJADŁ STWORZENIA
+CHECKEATCREAT:	ld a, (snake)		; Pobranie współrzędnych głowy
+	ld b, a
+	ld a, (snake+1)
+	ld c, a
+	
+	call CHECKCREAT	; Sprawdzenie czy na tych współrzędnych jest stworzenie
+	ret nc		; Jeśli nie to wróć
+	
+	ld b, creat_score	; Zwiększenie wyniku
+	call INCSCORE
+	call RANDCREATDIR	; Wylosowanie nowego położenia i kierunku stworzenia
+	call RANDCREATPOS
+	ret
 	
 ; PROCEDURA SPRAWDZAJĄCA W MIEJSCU X=B Y=C ZNAJDUJE SIĘ ŚCIANA, ZWRACA WYNIK W POSTACI FLAGI CARRY
 CHECKWALL:	ld hl, blocks
@@ -187,6 +337,40 @@ _csinc1:	inc hl
 	scf		
 	ccf
 	ret
+	
+; FUNKCJA SPRAWDZA CZY JEDZENIE ZNAJDUJE SIE NA WSPÓŁRZEDNYCH X=B Y=C I SYGNALIZUJE WYNIK FLAGĄ ZERO
+CHECKMEAL:	ld a, (mealx)		; Porównanie współrzędnych x
+	cp b
+	jp nz, _chmealfalse
+	
+	ld a, (mealy)		; Porównanie współrzędnych y
+	cp c
+	jp nz, _chmealfalse
+	
+	scf		; Ustawienie flagi carry gdy wsółrzędne się zgadzają
+	ret
+	
+_chmealfalse:	scf
+	ccf
+	ret
+	
+	
+
+; FUNKCJA SPRAWDZA CZY SWTORZENIE ZNAJDUJE SIE NA WSPÓŁRZEDNYCH X=B Y=C I SYGNALIZUJE WYNIK FLAGĄ ZERO
+CHECKCREAT:	ld a, (creatx)		; Porównanie współrzędnych x
+	cp b
+	jp nz, _chcreatfalse
+	
+	ld a, (creaty)		; Porównanie współrzędnych y
+	cp c
+	jp nz, _chcreatfalse
+	
+	scf		; Ustawienie flagi carry gdy wsółrzędne się zgadzają
+	ret
+	
+_chcreatfalse:	scf
+	ccf
+	ret
 
 ; PROCEDURA USTAWIA WSZYSTKIE ZMIENNEJ PO PRZEGRANEJ
 RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragmentów
@@ -227,6 +411,8 @@ RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragme
 	ld (hl), 0
 	
 	call RANDMEAL
+	call RANDCREATDIR
+	call RANDCREATPOS
 	
 	ret
 

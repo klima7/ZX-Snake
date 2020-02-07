@@ -12,8 +12,8 @@ curlevelnr	defb 0		; Aktualny poziom
 
 creatx	defb 0		; Pozycja poruszającego się jedzenia
 creaty	defb 0
-creatvx	defb 0		; Kierunek poruszającego się jedzenia
-creatvy	defb 0
+creatdir	defb 0		; Kierunek poruszającego się jedzenia
+
 mealx	defb 5		; Pozycja nieruchomego jedzenia
 mealy	defb 5
 

@@ -1,4 +1,4 @@
-levels	defb 24,60,126,219,255,36,90,165	; Grafika mysz dół
+levels	defb 16,16,16,56,56,56,56,16		; Grafika mysz dół
 	defb 0,0,120,255,120,0,0,0		; Grafika mysz lewo
 	defb 8,28,28,28,28,8,8,8		; Grafika mysz góra
 	defb 0,0,0,30,255,30,0,0		; Grafika mysz prawo

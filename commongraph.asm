@@ -31,3 +31,4 @@ press_str	defb "     PRESS ANY KEY TO START"
 s_str	defb " Ssss "
 
 meal_score	equ 10
+creat_score	equ 50
