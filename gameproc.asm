@@ -220,9 +220,6 @@ RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragme
 	ld hl, curdir		; Ustalenie aktualnego kierunku w prawo
 	ld (hl), 3
 	
-	ld hl, newdir		; Ustalenie następnego kierunku w prawo
-	ld (hl), 3
-	
 	ld hl, score		; Wyzerowanie wyniku
 	ld (hl), 0
 	
@@ -400,6 +397,7 @@ DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
 	
 ; FUNKCJA SPRAWDZA WCIŚNIĘTY PRZYCISK I EWENTUALNIE ZMIENIA KIERUNEK WĘŻA
 UPDATEDIR:	ld hl, curdir
+	ld b, (hl)
 	ld a, (23560)
 	cp 'w'
 	jr z, _updateu
@@ -409,16 +407,30 @@ UPDATEDIR:	ld hl, curdir
 	jr z, _updatel
 	cp 'd'
 	jr z, _updater
-	
 	ret
 	
-_updateu:	ld (hl), 2
+_updateu:	ld a, 0		; Blokada przez zawracaniem zakrętem o 180
+	cp b
+	ret z
+	ld (hl), 2		; Zmiana kierunku
 	ret
-_updated:	ld (hl), 0
+	
+_updated:	ld a, 2
+	cp b
+	ret z
+	ld (hl), 0
 	ret
-_updatel:	ld (hl), 1
+	
+_updatel:	ld a, 3
+	cp b
+	ret z
+	ld (hl), 1
 	ret
-_updater:	ld (hl), 3
+	
+_updater:	ld a, 1
+	cp b
+	ret z
+	ld (hl), 3
 	ret
 	
 

@@ -6,7 +6,6 @@ snakelen	defb 6		; Aktualna długość węża
 growlen	defb 0		; Długość o jaką ma urosnąć wąż
 
 curdir	defb 3		; Aktualny kierunek węża
-newdir	defb 0		; Kierunek gdzie chce się ruszyć gracz
 totallen	defb 0		; Całkowita długość węża
 score	defs 0		; Wynik wyświetlany na ekranie
 curlevelnr	defb 0		; Aktualny poziom
