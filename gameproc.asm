@@ -117,6 +117,9 @@ CHECKEATMEAL:	ld a, (snake)		; Porównanie współrzędnych x
 	ld b, meal_score
 	call INCSCORE
 	
+	ld hl, growlen		; Zwiększenie długości węża o 1
+	inc (hl)
+	
 _cmret:	ret
 	
 ; PROCEDURA SPRAWDZAJĄCA W MIEJSCU X=B Y=C ZNAJDUJE SIĘ ŚCIANA, ZWRACA WYNIK W POSTACI FLAGI CARRY
@@ -461,9 +464,19 @@ _moved:	inc c
 	jr nz, _addseg
 	jp GAMEOVER
 	
-_addseg:	call PUSHSEG
-	call POPSEG
-	call CHECKSNAKEHIT
+_addseg:	call PUSHSEG		; Dodanie segmentu z przodu węża
+
+	ld hl, growlen		; Sprawdzenie czy wąż rośnie i czy trzeba usówać ostatni segment
+	ld a, (hl)
+	cp 0
+	jp z, _popseg
+	
+	dec (hl)		; Nie usówamy ostatniego segmentu
+	jp _checkhit
+	
+_popseg:	call POPSEG		; Usówamy ostatni segment
+	
+_checkhit:	call CHECKSNAKEHIT	; Sprawdzenie czy wąż się z niczym nie zderzył
 	ret
 
 
