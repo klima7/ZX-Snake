@@ -126,7 +126,14 @@ _lcpause:	halt
 NEXTLEVEL:	ld hl, curlevelnr	; Zwiększenie aktualnego poziomu o 1
 	inc (hl)
 	
-	call LOADLEVEL
+	ld a, (hl)		; Jeżeli to był ostatni poziom to ustaw poziom na 0
+	cp levels_count
+	jp nz, _nlload
+	ld (hl), 0
+	
+	
+	
+_nlload:	call LOADLEVEL
 	jp STARTLEVEL
 	
 ; PROCEDURA SPRAWDZAJĄCA CZY GRACZ MA WYSTARCZAJĄCY WYNIK DO OTWARCIA WYJŚCIA
@@ -550,7 +557,7 @@ RESETGAME:	ld hl, snakelen	; snakelen=0
 	ld (hl), 0
 	
 	ld hl, curlevelnr	; curlevelnr=0
-	ld (hl), 0
+	ld (hl), 4
 	
 	ret
 
@@ -713,6 +720,20 @@ DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
 	ld a, (score)
 	ld b, a
 	ld a, (score+1)
+	ld c, a
+	call 6683
+	
+	ld b, 20		; Przejście na odpowiednią pozycję
+	ld c, 1
+	call GOTOXY
+	
+	ld de, tounlock_str;	; Wyświetl napis "To unlock:"
+	ld bc, 7
+	call 8252
+	
+	ld a, (reqscore)
+	ld b, a
+	ld a, (reqscore+1)
 	ld c, a
 	call 6683
 	

@@ -21,7 +21,7 @@ tail_l	defb 0,248,254,119,255,222,248,0
 tail_u	defb 118,126,94,126,118,60,60,24
 tail_r	defb 0,31,123,255,238,127,31,0
 
-stairs_u	defb 3,3,15,11,49,59,251,255		; Grafika dla schodów
+stairs_u	defb 0,24,60,126,24,24,24,0		; Grafika dla schodów
 stairs_d	defb 192,192,240,208,220,140,223,255
 
 score_str	defb "SCORE:"
@@ -30,8 +30,10 @@ snake_str	defb "ZX SNAKE"
 press_str	defb "     PRESS ANY KEY TO START"
 s_str	defb " Ssss "
 level_str	defb "Level "
+tounlock_str	defb "UNLOCK:"
 
 pause_time	equ 10
 start_len	equ 3
 meal_score	equ 10
 creat_score	equ 50
+levels_count	equ 5
