@@ -1,6 +1,13 @@
 
 ; PROCEDURA ROZPOCZYNAJACA GRE DANEGO POZIOMU
-STARTLEVEL:
+STARTLEVEL:	call LEVELSCREEN
+	call INITSNAKE
+
+	call RANDMEAL
+	call RANDCREATDIR
+	call RANDCREATPOS
+	call RANDEXIT
+
 	call DISPBLOCKS
 	call DISPSCORE
 	call DISPMEAL
@@ -8,17 +15,173 @@ STARTLEVEL:
 	
 _mainloop:	call UPDATEDIR
 	call MOVE	
+	call CHECKRESULT
 	call UPDATECREAT
 	call CHECKEATMEAL
 	call CHECKEATCREAT
 	call DISPSNAKE
 	
-	ld b, 15		; Zatrzymanie na chwile gry
+	ld b, pause_time	; Zatrzymanie na chwile gry
 _pause:	halt
 	djnz _pause
 	
 	jp _mainloop
 	ret	
+	
+; TWORZY POCZĄTKOWE SEGMENTY WĘŻA I INICJUJE DŁUGOŚĆ
+INITSNAKE:	ld a, (snakelen)	; growlen += len - 2
+	dec a
+	dec a
+	ld b, a
+	ld a, (growlen)
+	add a, b
+	ld (growlen), a	
+	
+	ld a, (inposx)		; Załadowanie do bc współrzędnych wejścia
+	ld b, a	
+	ld a, (inposy)
+	ld c, a
+	
+	call PUSHSEG		; Dodanie segmentu ogona
+	
+	ld a, (indir)		; Załadowanie do a kierunku wejścia
+	
+	cp 0
+	jr z, _ismoved
+	cp 1
+	jr z, _ismovel
+	cp 2
+	jr z, _ismoveu
+	cp 3
+	jr z, _ismover
+	
+_ismovel:	dec b
+	jp _afterdir
+_ismover:	inc b
+	jp _afterdir
+_ismoveu:	dec c
+	jp _afterdir
+_ismoved:	inc c
+	jp _afterdir
+	
+_afterdir:	call PUSHSEG		; Dodanie segmentu głowy
+		
+	ld a, (indir)		; Ustalenie kierunku poruszania
+	ld (curdir), a		
+	ld hl, 23560
+	ld (hl), 0
+	
+	ld a, 2		; snakelen = 2
+	ld (snakelen), a
+	
+	ret
+	
+LEVELSCREEN:	call 3503		; Czyszczenie ekranu
+	
+	ld b, 12		; Przejście na odpowiednie współzędne
+	ld c, 10
+	call GOTOXY
+	
+	ld de, level_str	; Wyświetlenie napisu "level"
+	ld bc, 6
+	call 8252
+	
+	ld a, (curlevelnr)	; Wyświetlenie numeru poziomu
+	inc a
+	ld c, a
+	ld b, 0
+	call 6683
+	
+	ld d, 0
+	
+_lcsnakeloop:	ld b, d		; Przejście na odpowiednie współzędne
+	ld c, 12
+	call GOTOXY
+	
+	ld hl, str_h		; Ustawienie grafiki na ciało węża	
+	ld (23675), hl
+	
+	ld a, 144		; Wyświetlenie ciała węża
+	rst 16
+	
+	ld hl, head_r		; Ustawienie grafiki na głowę	
+	ld (23675), hl
+	
+	ld a, 144		; Wyświetlenie głowy
+	rst 16
+	
+	ld b, 3		; Pauza
+_lcpause:	halt
+	djnz _lcpause
+	
+	inc d		; Obsługa pętli
+	ld a, d
+	cp 30
+	jr c, _lcsnakeloop
+	
+	ret
+	
+	
+; PROCEDURA ŁADUJĄCA KOLEJNY POZIOM
+NEXTLEVEL:	ld hl, curlevelnr	; Zwiększenie aktualnego poziomu o 1
+	inc (hl)
+	
+	call LOADLEVEL
+	jp STARTLEVEL
+	
+; PROCEDURA SPRAWDZAJĄCA CZY GRACZ MA WYSTARCZAJĄCY WYNIK DO OTWARCIA WYJŚCIA
+CHECKRESULT:	ld a, (score)		; Porównanie starszych bajtów wyników
+	ld hl, reqscore
+	cp (hl)
+	ret c		
+	jp nz, _atexit
+	
+	ld a, (score+1)	; Porównanie młodszych bajtów wyników
+	ld hl, reqscore+1
+	cp (hl)
+	ret c		
+	
+_atexit:	call DISPEXIT		; Wyświetlenie wyjścia i sprawdzenie czy nie ma tam gracza
+	call CHECKEXIT
+	ret
+	
+; PROCEDURA WYŚWIETLA WYJŚCIE Z POZIOMU 
+DISPEXIT:	ld a, (outposx)	; Wczytanie współrzędnych wyjścia
+	ld b, a
+	ld a, (outposy)
+	ld c, a
+	
+	call GOTOXY		; Przejście na odpowiednią pozycje
+	
+	ld hl, stairs_u	; Ustawienie grafiki wyjścia
+	ld (23675), hl
+	
+	ld a, 144		; Narysowanie wyjścia
+	rst 16
+	ret
+	
+; PROCEDURA LOSUJĄCA WSPÓŁRZĘDNE WYJŚCIA
+RANDEXIT:	call RANDFREEPOS
+	ld hl, outposx
+	ld (hl), b
+	ld hl, outposy
+	ld (hl), c
+	ret
+	
+; PROCEDURA SPRAWDZAJĄCA, CZY GRACZ NIE WSZEDŁ DO WYJŚCIA
+CHECKEXIT:	ld a, (snake)		; Porównanie współrzędnej x
+	ld hl, outposx
+	cp (hl)
+	ret nz
+	
+	ld a, (snake+1)	; Porównanie współrzędnej y
+	ld hl, outposy
+	cp (hl)
+	ret nz
+	
+	; Następny poziom
+	call NEXTLEVEL
+	ret
 	
 ; PROCEDURA LOSUJE KIERUNEK PORUSZAJĄCEGO SIĘ STWORZENIA
 RANDCREATDIR:	call RANDOM
@@ -145,7 +308,7 @@ _creatdraw:	ld a, b		; Gdy stworzenie w nic nie uderzyło
 INCSCORE:	ld hl, (score)
 	ld d, b
 	ld e, 0
-	adc hl, de
+	add hl, de
 	ld (score), hl
 	call DISPSCORE
 	ret
@@ -375,48 +538,19 @@ _chcreatfalse:	scf
 	ret
 
 ; PROCEDURA USTAWIA WSZYSTKIE ZMIENNEJ PO PRZEGRANEJ
-RESETGAME:	ld hl, snake		; Stworzenie węża składającego się z trzech fragmentów
-	ld (hl), 12
-	inc hl
-	ld (hl), 10
-	inc hl
-	ld (hl), 11
-	inc hl
-	ld (hl), 10
-	inc hl
-	ld (hl), 10
-	inc hl
-	ld (hl), 10
-	inc hl
-	ld (hl), 9
-	inc hl
-	ld (hl), 10
-	inc hl
-	ld (hl), 8
-	inc hl
-	ld (hl), 10
-	inc hl
-	ld (hl), 7
-	inc hl
-	ld (hl), 10
+RESETGAME:	ld hl, snakelen	; snakelen=0
+	ld (hl), 2
 	
-	ld hl, snakelen	; Ustawienie długości węża na 3
-	ld (hl), 6
+	ld hl, growlen		; growlen=0	
+	ld (hl), 0
 	
-	ld hl, curdir		; Ustalenie aktualnego kierunku w prawo
-	ld (hl), 3
-	
-	ld hl, score		; Wyzerowanie wyniku
+	ld hl, score		; score=0
 	ld (hl), 0
 	inc hl
 	ld (hl), 0
 	
-	ld hl, curlevelnr	; Wyzerowanie poziomu
-	ld (hl), 1
-	
-	call RANDMEAL
-	call RANDCREATDIR
-	call RANDCREATPOS
+	ld hl, curlevelnr	; curlevelnr=0
+	ld (hl), 0
 	
 	ret
 
@@ -547,7 +681,7 @@ GAMEOVER:	call 3503		; Czyszczenie ekranu
 	ld bc, 9
 	call 8252
 	
-	ld b, 12		; Przejdz na współrzędne napisu "Score"
+	ld b, 11		; Przejdz na współrzędne napisu "Score"
 	ld c, 12
 	call GOTOXY
 	
@@ -555,9 +689,10 @@ GAMEOVER:	call 3503		; Czyszczenie ekranu
 	ld bc, 6
 	call 8252
 	
-	ld hl, score		; Wyświetl liczbę będącą wynikiem
-	ld c, (hl)
-	ld b, 0
+	ld a, (score)		; Wyświetl wynik
+	ld b, a
+	ld a, (score+1)
+	ld c, a
 	call 6683
 	
 	call PRESSANYKEY
@@ -953,7 +1088,7 @@ PUSHSEG:	push bc		; Obłożenie na stos, bo potrzebujemy bc do instrukcji lddr
 	
 	lddr		; Kopiowanie
 	
-	pop bc		; Obzyskanie odłorzonych wcześniej współrzędnych x, y
+	pop bc		; Odzyskanie odłorzonych wcześniej współrzędnych x, y
 	
 	ld hl, snake		; Wpisanie współrzędnych x, y w pierwszy segment
 	ld (hl), b

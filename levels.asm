@@ -30,8 +30,7 @@ levels	defb 16,16,16,56,56,56,56,16			; Grafika mysz dół
 	defb %10000000, %00000000, %00000000, %00000001
 	defb %11111111, %11111111, %11111111, %11111111
 	
-	defb 10, 10				; Współrzędne wejścia x, y
-	defb 20, 20				; Współrzędne wyjścia x, y
+	defb 1, 1				; Współrzędne wejścia x, y
 	defb 0, 10				; Wynik potrzebny do otwarcia wyjścia
 	defb 0				; Kierunek w którym ma się poruszać wąż po pojawieniu się
 	
@@ -71,6 +70,5 @@ levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
 	defb %00000000, %00000000, %00000000, %00000000
 	
 	defb 10, 10				; Współrzędne wejścia x, y
-	defb 20, 20				; Współrzędne wyjścia x, y
-	defb 0, 10				; Wynik potrzebny do otwarcia wyjścia
+	defb 0, 0				; Wynik potrzebny do otwarcia wyjścia
 	defb 0
