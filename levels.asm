@@ -31,7 +31,6 @@ levels	defb 16,16,16,56,56,56,56,16			; Grafika mysz dół
 	defb %11111111, %11111111, %11111111, %11111111
 	
 	defb 1, 1				; Współrzędne wejścia x, y
-	defb 0, 100				; Wynik potrzebny do otwarcia wyjścia
 	defb 0				; Kierunek w którym ma się poruszać wąż po pojawieniu się
 	
 levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
@@ -70,7 +69,6 @@ levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
 	defb %00000000, %00000000, %00000000, %00000000
 	
 	defb 10, 10				; Współrzędne wejścia x, y
-	defb 0, 200				; Wynik potrzebny do otwarcia wyjścia
 	defb 0
 	
 	; POZIOM 2
@@ -106,7 +104,6 @@ levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
 	defb %00000000, %00000000, %00000000, %00000000
 	
 	defb 10, 10				; Współrzędne wejścia x, y
-	defb 1, 44				; Wynik potrzebny do otwarcia wyjścia
 	defb 0
 	
 	; POZIOM 3
@@ -142,7 +139,6 @@ levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
 	defb %11111111, %11111111, %11111111, %11111111
 	
 	defb 10, 17				; Współrzędne wejścia x, y
-	defb 1, 144				; Wynik potrzebny do otwarcia wyjścia
 	defb 3
 	
 	; POZIOM 4
@@ -179,5 +175,4 @@ levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
 
 	
 	defb 1, 17				; Współrzędne wejścia x, y
-	defb 39, 16				; Wynik potrzebny do otwarcia wyjścia
 	defb 3

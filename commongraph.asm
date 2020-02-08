@@ -25,15 +25,17 @@ stairs_u	defb 0,24,60,126,24,24,24,0		; Grafika dla schodów
 stairs_d	defb 192,192,240,208,220,140,223,255
 
 score_str	defb "SCORE:"
+author_str	defb "By Lukasz Klimkiewicz"
 gameover_str	defb "GAME OVER"
 snake_str	defb "ZX SNAKE"
 press_str	defb "     PRESS ANY KEY TO START"
 s_str	defb " Ssss "
 level_str	defb "Level "
 tounlock_str	defb "UNLOCK:"
+speed_str	defb "SPEED:"
 
-pause_time	equ 10
 start_len	equ 3
 meal_score	equ 10
-creat_score	equ 50
+creat_score	equ 20
 levels_count	equ 5
+score_increase	equ 100

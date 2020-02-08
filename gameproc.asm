@@ -21,7 +21,8 @@ _mainloop:	call UPDATEDIR
 	call CHECKEATCREAT
 	call DISPSNAKE
 	
-	ld b, pause_time	; Zatrzymanie na chwile gry
+	ld a, (pause_time)	; Zatrzymanie na chwile gry
+	ld b, a
 _pause:	halt
 	djnz _pause
 	
@@ -130,6 +131,8 @@ NEXTLEVEL:	ld hl, curlevelnr	; Zwiększenie aktualnego poziomu o 1
 	cp levels_count
 	jp nz, _nlload
 	ld (hl), 0
+	ld hl, pause_time
+	dec (hl)
 	
 	
 	
@@ -188,6 +191,22 @@ CHECKEXIT:	ld a, (snake)		; Porównanie współrzędnej x
 	
 	; Następny poziom
 	call NEXTLEVEL
+	ret
+	
+; PROCEDURA SPRAWDZAJĄCA CZY NA WSPÓŁRZĘDNYCH X=A Y=B ZNAJDUJE SIĘ WYJŚCIE
+CHECKATEXIT:	ld a, (outposx)	; Porównanie współrzędnych x
+	cp b
+	jp nz, _cefalse
+	
+	ld a, (outposy)	; Porównanie współrzędnych y
+	cp c
+	jp nz, _cefalse
+	
+	scf		; Ustawienie flagi carry gdy wsółrzędne się zgadzają
+	ret
+	
+_cefalse:	scf
+	ccf
 	ret
 	
 ; PROCEDURA LOSUJE KIERUNEK PORUSZAJĄCEGO SIĘ STWORZENIA
@@ -312,11 +331,22 @@ _creatdraw:	ld a, b		; Gdy stworzenie w nic nie uderzyło
 	
 	
 ; FUNKCJA ZWIĘKSZA WYNIK O ZAWARTOŚĆ REJESTRU B
-INCSCORE:	ld hl, (score)
-	ld d, b
-	ld e, 0
+INCSCORE:	ld a, (score)
+	ld h, a
+	ld a, (score+1)
+	ld l, a
+	
+	ld d, 0
+	ld e, b
+	
 	add hl, de
-	ld (score), hl
+	
+	ld a, h
+	ld (score), a
+	ld a, l
+	ld (score+1), a
+	
+	
 	call DISPSCORE
 	ret
 	
@@ -390,6 +420,9 @@ CHECKSTH:	call CHECKWALL		; Sprawdzenie czy na pozycji nie ma ściany
 	ret c
 	
 	call CHECKCREAT	; Sprawdzenie czy na pozycji nie ma stworzenia
+	ret c
+	
+	call CHECKATEXIT	; Sprawdzenie czy na pozycji nie ma wyjścia
 	ret c
 	
 	call CHECKSNAKE	; Sprawdzenie czy na pozycji nie ma węża
@@ -556,8 +589,13 @@ RESETGAME:	ld hl, snakelen	; snakelen=0
 	inc hl
 	ld (hl), 0
 	
+	ld hl, reqscore	; reqscore=0
+	ld (hl), 0
+	inc hl
+	ld (hl), 0
+	
 	ld hl, curlevelnr	; curlevelnr=0
-	ld (hl), 4
+	ld (hl), 0
 	
 	ret
 
@@ -586,6 +624,13 @@ MENU:	call 3503		; Czyszczenie ekranu
 	
 	ld de, snake_str	; Wyświetl "ZX snake"
 	ld bc, 10
+	call 8252
+	
+	ld b, 6		; Przejdz na współrzędne napisu "Author"
+	ld c, 0
+	call GOTOXY
+	ld de, author_str	; Wyświetl "Author"
+	ld bc, 21
 	call 8252
 	
 	ld b, 0		; Przejdz na współrzędne węża
@@ -723,7 +768,7 @@ DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
 	ld c, a
 	call 6683
 	
-	ld b, 20		; Przejście na odpowiednią pozycję
+	ld b, 10		; Przejście na odpowiednią pozycję
 	ld c, 1
 	call GOTOXY
 	
@@ -735,6 +780,23 @@ DISPSCORE:	ld a, 1		; Wybierz pierwszy kanał
 	ld b, a
 	ld a, (reqscore+1)
 	ld c, a
+	call 6683
+	
+	ld b, 24		; Przejście na odpowiednią pozycję
+	ld c, 1
+	call GOTOXY
+	
+	ld de, speed_str;	; Wyświetl napis "Score: "
+	ld bc, 6
+	call 8252
+	
+	ld a, (pause_time)
+	ld b, a
+	ld a, 11
+	sub b
+	
+	ld c, a
+	ld b, 0
 	call 6683
 	
 	ld a, 2		; Ustaw spowrotem kanał 2
@@ -854,6 +916,22 @@ _addlvl:	cp b		; Dodanie do rejestru hl długości poziomu tyle razy, który poz
 _lvlcopy:	ld de, currentlvl	; Gdy znamy adres poziomu który chcemy załadować, to go kopiujemy w miejsce aktualnego poziomu
 	ld bc, levellen
 	ldir
+	
+	ld a, (score)		; Pobranie wyniku do hl
+	ld h, a
+	ld a, (score+1)
+	ld l, a
+	
+	ld d, 0		; Wczytanie score_increase do de
+	ld e, score_increase
+	
+	add hl, de		; Dodanie
+	
+	ld a, h		; Zapisanie wyniku do reqscore
+	ld (reqscore), a
+	ld a, l
+	ld (reqscore+1), a
+	
 	ret
 	
 ; PROCEDURA WYŚWIETLAJĄCA WSZYSTKIE ŚCIANY 

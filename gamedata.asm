@@ -7,7 +7,9 @@ growlen	defb 0		; Długość o jaką ma urosnąć wąż
 
 curdir	defb 3		; Aktualny kierunek węża
 score	defb 0, 0		; Wynik wyświetlany na ekranie
+reqscore	defb 0, 0
 curlevelnr	defb 0		; Aktualny poziom
+pause_time 	defb 10
 
 creatx	defb 0		; Pozycja poruszającego się jedzenia
 creaty	defb 0
@@ -31,5 +33,4 @@ blocks	defs 88		; Mapa z blokami aktualnego poziomu
 
 inposx	defb 0		; Współrzędne wejścia na aktualny poziom
 inposy	defb 0
-reqscore	defb 0, 0		; Wymagany wynik by przejść z aktualnego na następny poziom
 indir	defb 0		; Początkowy kierunek po wejściu na aktualny poziom
