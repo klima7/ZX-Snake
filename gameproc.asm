@@ -20,6 +20,7 @@ _mainloop:	call UPDATEDIR
 	call CHECKEATMEAL
 	call CHECKEATCREAT
 	call DISPSNAKE
+	call BEEP1
 	
 	ld a, (pause_time)	; Zatrzymanie na chwile gry
 	ld b, a
@@ -28,6 +29,24 @@ _pause:	halt
 	
 	jp _mainloop
 	ret	
+	
+BEEP1:	push hl
+	push de
+	ld hl,497
+	ld de,10
+	call 949
+	pop de
+	pop hl
+	ret
+	
+BEEP2:	push hl
+	push de
+	ld hl,700
+	ld de,10
+	call 949
+	pop de
+	pop hl
+	ret
 	
 ; TWORZY POCZĄTKOWE SEGMENTY WĘŻA I INICJUJE DŁUGOŚĆ
 INITSNAKE:	ld a, (snakelen)	; growlen += len - 2
@@ -95,7 +114,8 @@ LEVELSCREEN:	call 3503		; Czyszczenie ekranu
 	
 	ld d, 0
 	
-_lcsnakeloop:	ld b, d		; Przejście na odpowiednie współzędne
+_lcsnakeloop:	call BEEP2
+	ld b, d		; Przejście na odpowiednie współzędne
 	ld c, 12
 	call GOTOXY
 	
@@ -456,6 +476,7 @@ CHECKEATMEAL:	ld a, (snake)		; Porównanie współrzędnych x
 	call RANDMEAL		; Instrukcje wykonywane gdy wąż zjadł jedzenie
 	ld b, meal_score
 	call INCSCORE
+	call BEEP2
 	
 	ld hl, growlen		; Zwiększenie długości węża o 1
 	inc (hl)
@@ -475,6 +496,7 @@ CHECKEATCREAT:	ld a, (snake)		; Pobranie współrzędnych głowy
 	call INCSCORE
 	call RANDCREATDIR	; Wylosowanie nowego położenia i kierunku stworzenia
 	call RANDCREATPOS
+	call BEEP2
 	ret
 	
 ; PROCEDURA SPRAWDZAJĄCA W MIEJSCU X=B Y=C ZNAJDUJE SIĘ ŚCIANA, ZWRACA WYNIK W POSTACI FLAGI CARRY
@@ -595,7 +617,7 @@ RESETGAME:	ld hl, snakelen	; snakelen=0
 	ld (hl), 0
 	
 	ld hl, curlevelnr	; curlevelnr=0
-	ld (hl), 0
+	ld (hl), 4
 	
 	ret
 
@@ -681,6 +703,7 @@ _textanimloop:	ld a, l
 	cp 0
 	jp nz, _disptext
 	ld l, 1
+	call BEEP1
 	jp _disptext
 	
 _textright:	inc h		; Przesówanie tekstu w prawo
@@ -688,6 +711,7 @@ _textright:	inc h		; Przesówanie tekstu w prawo
 	cp 26
 	jp nz, _disptext
 	ld l, 0
+	call BEEP1
 	jp _disptext
 
 _disptext:	ld b, h		; Przejdz do współrzędnych gdzie trzeba wyświetlić napis
@@ -698,7 +722,7 @@ _disptext:	ld b, h		; Przejdz do współrzędnych gdzie trzeba wyświetlić napi
 	ld bc, 6
 	call 8252
 
-	ld b, 15
+	ld b, 5
 _animpause:	halt
 	djnz _animpause
 	
@@ -746,6 +770,22 @@ GAMEOVER:	call 3503		; Czyszczenie ekranu
 	ld a, (score+1)
 	ld c, a
 	call 6683
+	
+	ld b, 20
+_mpause:	halt
+	djnz _mpause
+	
+	ld hl,397
+	ld de,500
+	call 949
+	
+	ld hl,497
+	ld de,500
+	call 949
+	
+	ld hl,597
+	ld de,500
+	call 949
 	
 	call PRESSANYKEY
 	jp MENU

@@ -142,13 +142,13 @@ levellen	equ $-levels				; Ile bajtów zajmuje każdy poziom
 	defb 3
 	
 	; POZIOM 4
-	defb 126,255,126,126,255,126,24,24			; Grafika coś dół
-	defb 18,63,63,255,255,63,63,18			; Grafika coś lewo
-	defb 24,24,126,255,126,126,255,126			; Grafika coś góra
-	defb 72,252,252,255,255,252,252,72			; Grafika coś prawo
-	defb 60,126,126,126,126,126,60,0			; Grafika dla ciastka
-	defb 255,255,255,231,231,255,255,255		; Grafika dla bloku
-	defb 158,144,144,254,18,18,242,0			; Grafika dla wolnej przestrzeni
+	defb 0,36,60,126,219,255,102,60			; Grafika coś dół
+	defb 0,36,60,126,219,255,102,60			; Grafika coś lewo
+	defb 0,36,60,126,219,255,102,60			; Grafika coś góra
+	defb 0,36,60,126,219,255,102,60			; Grafika coś prawo
+	defb 2,33,105,174,16,40,68,130		; Grafika dla ciastka
+	defb 158,144,144,254,18,18,242,0		; Grafika dla bloku
+	defb 0,0,0,16,0,0,0,0			; Grafika dla wolnej przestrzeni
 	
 	defb %00000000, %00000000, %00000000, %00000000
 	defb %00010000, %00000001, %11111111, %11110000
