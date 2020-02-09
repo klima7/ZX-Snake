@@ -15,8 +15,11 @@ creatx	defb 0		; Pozycja poruszającego się jedzenia
 creaty	defb 0
 creatdir	defb 0		; Kierunek poruszającego się jedzenia
 
-mealx	defb 5		; Pozycja nieruchomego jedzenia
-mealy	defb 5
+mealx	defb 0		; Pozycja nieruchomego jedzenia
+mealy	defb 0
+
+skullx	defb 0
+skully	defb 0
 
 outposx	defb 0		; Współrzędne wyjścia z aktualnego poziomu
 outposy	defb 0

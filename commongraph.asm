@@ -24,6 +24,8 @@ tail_r	defb 0,31,123,255,238,127,31,0
 stairs_u	defb 0,24,60,126,24,24,24,0		; Grafika dla schodów
 stairs_d	defb 192,192,240,208,220,140,223,255
 
+skull	defb 126,195,165,129,126,36,36,24
+
 score_str	defb "SCORE:"
 author_str	defb "By Lukasz Klimkiewicz"
 gameover_str	defb "GAME OVER"
@@ -38,4 +40,5 @@ start_len	equ 3
 meal_score	equ 10
 creat_score	equ 20
 levels_count	equ 5
+skulllen	equ 7
 score_increase	equ 100

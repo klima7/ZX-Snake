@@ -7,11 +7,13 @@ STARTLEVEL:	call LEVELSCREEN
 	call RANDCREATDIR
 	call RANDCREATPOS
 	call RANDEXIT
+	call RANDSKULL
 
 	call DISPBLOCKS
 	call DISPSCORE
 	call DISPMEAL
 	call DISPCREAT
+	call DISPSKULL
 	
 _mainloop:	call UPDATEDIR
 	call MOVE	
@@ -19,6 +21,7 @@ _mainloop:	call UPDATEDIR
 	call UPDATECREAT
 	call CHECKEATMEAL
 	call CHECKEATCREAT
+	call CHECKEATSKULL
 	call DISPSNAKE
 	call BEEP1
 	
@@ -47,6 +50,25 @@ BEEP2:	push hl
 	pop de
 	pop hl
 	ret
+	
+CHECKEATSKULL:	ld a, (snake)		; Porównanie współrzędnych x
+	ld hl, skullx
+	cp (hl)
+	jr nz, _chskullret
+	
+	ld a, (snake+1)	; Porównanie współrzędnych y
+	ld hl, skully
+	cp (hl)
+	jr nz, _chskullret
+	
+	call RANDSKULL		; Instrukcje wykonywane gdy wąż zjadł czaszke
+	ld a, (growlen)
+	ld b, skulllen
+	add a, b
+	ld (growlen), a
+	call BEEP2
+	
+_chskullret:	ret
 	
 ; TWORZY POCZĄTKOWE SEGMENTY WĘŻA I INICJUJE DŁUGOŚĆ
 INITSNAKE:	ld a, (snakelen)	; growlen += len - 2
@@ -158,6 +180,15 @@ NEXTLEVEL:	ld hl, curlevelnr	; Zwiększenie aktualnego poziomu o 1
 	
 _nlload:	call LOADLEVEL
 	jp STARTLEVEL
+	
+; PROCEDURA LOSUJE WSPÓŁRZĘDNE DLA CZASZKI
+RANDSKULL:	call RANDFREEPOS
+	ld hl, skullx
+	ld (hl), b
+	ld hl, skully
+	ld (hl), c
+	call DISPSKULL
+	ret
 	
 ; PROCEDURA SPRAWDZAJĄCA CZY GRACZ MA WYSTARCZAJĄCY WYNIK DO OTWARCIA WYJŚCIA
 CHECKRESULT:	ld a, (score)		; Porównanie starszych bajtów wyników
@@ -394,6 +425,21 @@ DISPMEAL:	ld hl, meal		; Ustawienie aktualnej grafiki na jedzenie
 	rst 16
 	ret
 	
+; FUNKCJA WYŚWIETLA CZASZKE
+DISPSKULL:	ld hl, skull		; Ustawienie aktualnej grafiki na czaszke
+	ld (23675), hl	
+	
+	ld a, (skullx)		; Wczytanie do bc współrzędnych czaszki
+	ld b, a
+	ld a, (skully)
+	ld c, a
+	
+	call GOTOXY		; Przejście na współrzędne czaszki
+	
+	ld a, 144		; Wydrukowanie czaszki
+	rst 16
+	ret
+	
 ; FUNKCJA LOSUJE POZYCJE NA EKRANIE I ZAPISUJE WSPÓŁRZĘDNE DO BC: B=X Y=C
 RANDOMPOS:	call RANDOM		; Wylosowanie współrzędnej x
 	and %00011111
@@ -443,6 +489,9 @@ CHECKSTH:	call CHECKWALL		; Sprawdzenie czy na pozycji nie ma ściany
 	ret c
 	
 	call CHECKATEXIT	; Sprawdzenie czy na pozycji nie ma wyjścia
+	ret c
+	
+	call CHECKSKULL
 	ret c
 	
 	call CHECKSNAKE	; Sprawdzenie czy na pozycji nie ma węża
@@ -581,7 +630,21 @@ _chmealfalse:	scf
 	ccf
 	ret
 	
+; FUNKCJA SPRAWDZA CZY CZASZKA ZNAJDUJE SIE NA WSPÓŁRZEDNYCH X=B Y=C I SYGNALIZUJE WYNIK FLAGĄ ZERO
+CHECKSKULL:	ld a, (skullx)		; Porównanie współrzędnych x
+	cp b
+	jp nz, _chskullfalse
 	
+	ld a, (skully)		; Porównanie współrzędnych y
+	cp c
+	jp nz, _chskullfalse
+	
+	scf		; Ustawienie flagi carry gdy wsółrzędne się zgadzają
+	ret
+	
+_chskullfalse:	scf
+	ccf
+	ret
 
 ; FUNKCJA SPRAWDZA CZY SWTORZENIE ZNAJDUJE SIE NA WSPÓŁRZEDNYCH X=B Y=C I SYGNALIZUJE WYNIK FLAGĄ ZERO
 CHECKCREAT:	ld a, (creatx)		; Porównanie współrzędnych x
@@ -617,7 +680,7 @@ RESETGAME:	ld hl, snakelen	; snakelen=0
 	ld (hl), 0
 	
 	ld hl, curlevelnr	; curlevelnr=0
-	ld (hl), 4
+	ld (hl), 0
 	
 	ret
 
